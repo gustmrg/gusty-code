@@ -8,3 +8,6 @@ packages/source-control-github/schema/** linguist-generated
 packages/issue-tracker-linear/schema/** linguist-generated
 apps/server/schema/** linguist-generated
 **/*.graphql.ts linguist-generated
+# Keep Gusty Code's versions on upstream syncs; AGENTS.md changes are ported by hand. Needs `git config merge.ours.driver true`.
+README.md merge=ours
+AGENTS.md merge=ours

@@ -1,51 +1,72 @@
-# T3 Code
+# Gusty Code
 
-T3 Code is a minimal GUI for coding agents. A Node WebSocket server wraps provider CLIs and agents (Codex, Claude Code, Cursor, Grok, OpenCode, Antigravity, Kiro, Pi, Muse Code, fx) and serves web, desktop, and mobile clients.
+Gusty Code is a minimal GUI for coding agents. A Node WebSocket server wraps provider CLIs and agents (Codex, Claude Code, Cursor, Grok, OpenCode, Antigravity, Kiro, Pi, Muse Code, fx) and serves web, desktop, and mobile clients.
 
-You can think of T3 Code as an open source "bring-your-own-subscription" alternative to apps like Claude Desktop, Codex App, Cursor Glass and Conductor.
+Gusty Code is a fork of T3 Code. It lives at `gustmrg/t3code` and tracks the stable releases of `pingdotgg/t3code`, called upstream here. Most of the code and of the guidance below comes from upstream. Where that guidance says T3 Code, read it as this codebase; "we", "maintainers", and "the developer" mean the owner of this repository. Where it conflicts with the fork workflow in the sections that follow, the fork workflow wins.
 
-## What makes T3 Code special?
+Most changes here are made by agents running inside Gusty Code itself, often controlled remotely. Be careful accessing data, killing dev servers, and anything else that may damage the instance the developer is using.
 
-We have over 500,000 users who love T3 Code. It's important we maintain the things they love as we continue to iterate on the product. Here's a brief list of the things we can never compromise on.
+## Remotes
 
-### 1. Open at the core
+- `origin` is `gustmrg/t3code`. Push, open PRs, and file issues here.
+- `upstream` is `pingdotgg/t3code`, fetch only. Its push URL is set to `DISABLE`. Never push to upstream or open PRs, issues, or comments there.
+- `gh` targets a fork's parent repository by default. Run `gh repo set-default gustmrg/t3code` once per clone, and pass `--repo gustmrg/t3code` when in doubt.
+- Run `git config merge.ours.driver true` once per clone. `.gitattributes` uses it so `README.md` and `AGENTS.md` keep this repository's version on every sync.
+- Upstream's forge mirror and release pipeline do not apply here. `release.yml` and the other upstream workflows only run on `pingdotgg/t3code`.
 
-T3 Code is truly open. We share our roadmap, we share how we think about things, and of course we share all our code. A large number of our users run forks. We work in the open, and should strive to stay that way.
+## Branches
 
-### 2. Performance without compromise
+- `main` is the latest upstream **stable** tag plus this repository's changes. It is protected: changes land only through a PR.
+- `feat/*`, `fix/*`, `docs/*`, `ci/*` start from `main` and return by PR, usually squash-merged.
+- `backport/<topic>` brings an upstream commit that is not in a stable yet. Use `git cherry-pick -x <sha>` and keep the `(cherry picked from commit …)` line in the final commit message.
+- `sync/vX.Y.Z` merges an upstream stable tag into `main`. Merge it with a **merge commit**, never squash or rebase: that drops the link to upstream history and the next sync re-conflicts everything.
+- `archive/*` are frozen backups of earlier work. Never rewrite or delete them.
 
-Lots of apps have gotten bogged down with bad tech decisions and "slop". We have not, and we're proud of the performance of T3 Code. We regularly audit for performance regressions, often caused by sending too much data over websockets, css animations causing gpu spikes, lists being hard to render, and more. Make sure all changes are considerate of performance impact.
+## Reading upstream releases
 
-### 3. Remote ready
+Upstream lands everything on `main` and marks releases with tags:
 
-The architecture of T3 Code's websocket layer (`t3`) enables a lot of awesome remote features. These have become core to the product. Whether users are connecting directly over their local network, using Tailscale, or leaning in fully with T3 Connect (our tunnel solution, also in this repo), we need to make sure new features are properly supported.
+- Stable: `vX.Y.Z` with no suffix. It points at a commit that already shipped as a nightly.
+- Nightly: `vX.Y.Z-nightly.YYYYMMDD.N`, cut from upstream `main` on a schedule.
+- Preview: `-preview.*`, maintainer pipeline tests. Ignore them.
 
-### 4. Multi-surface
+After `git fetch upstream --tags`:
 
-T3 Code has 3 key app surfaces: **web**, **desktop**, and **mobile**.
+```sh
+git describe --tags --abbrev=0 --match 'v*' --exclude '*-*' main  # stable this repository is based on
+git log --oneline main..upstream/main                              # upstream work not in main yet
+git tag --contains <sha> --sort=creatordate | head -1             # first release that shipped a commit
+```
 
-**Web** is kind of two surfaces, as we have the public facing "app.t3.codes" as well as locally hosting the web app through the `t3` command. Both need to be supported by all new features where reasonable.
+## Syncing an upstream stable
 
-**Desktop** is the main surface most users install first. It's a full Electron app that bundles the server runner as well. The desktop app can also be used as the host server, allowing remote connections from app.t3.codes or the mobile app.
+```sh
+git fetch upstream --tags
+git switch -c sync/vX.Y.Z main
+git merge vX.Y.Z
+```
 
-**Mobile** is a React Native app for both iOS and Android, available on the App Store and Google Play. The mobile app allows for connecting to any T3 Code server to control work remotely.
+- Resolve each conflict by keeping upstream's logic and reapplying this repository's change on top. Never use a blanket `-X ours` or `-X theirs`; it silently discards fixes.
+- `AGENTS.md` always keeps this repository's version, so the merge silently drops upstream's changes to it. Review them with `git diff <previous-stable> vX.Y.Z -- AGENTS.md`, port what applies to Gusty Code, and list what was ported or skipped in the sync PR.
+- Validate with `vp i`, `vp run typecheck`, and one pass in a real client, then open the PR into `main`.
+- Sync often. Upstream ships stables every few days with hundreds of commits between them; skipping one or two is fine, skipping ten is a rewrite.
 
-## A note from Theo
+## Keeping the diff from upstream small
 
-I like ambitious ideas, simple systems, and software that feels obvious. Do not preserve complexity just because it already exists. Do not introduce machinery because it looks architecturally impressive. Understand the real constraint, then fight for the smallest model that makes the correct behavior unsurprising.
+Every upstream file this repository edits is a possible conflict on every sync.
 
-Channel both "measure twice, cut once" and "yagni". Fight scope creep. Try to honor the dev's intent in both a minimal and realistic fashion.
-
-The rest of this document is meant to help you navigate the codebase and make changes effectively. Think of these instructions less as "hard rules", more as "good defaults". The developer's preferences should be able to override anything here.
-
-Of note: Most T3 Code contributions will come from T3 Code itself, often controlled remotely. This means you should be careful about accessing data, killing dev servers, and other things that may damage the T3 Code instance that the contributor is using.
+- Prefer settings, themes, and configuration over editing upstream components.
+- Put Gusty-only code in new files when possible.
+- Never edit or delete upstream workflow files. Disable the ones Gusty Code does not use in the repository's Actions settings, and keep Gusty workflows in their own files.
+- Release tags and versioning are not defined yet. Do not create tags or GitHub releases until they are.
+- The earlier work, before the restart on `v0.1.11`, is in `archive/main-2026-10`. Recover from it selectively; do not merge it.
 
 ## A small glossary
 
 We need to be on the same page with terminology. When communicating, use this language:
 
 - **you** means the agent reading this file and changing T3 Code.
-- **we, us, and maintainers** mean Theo, Julius and the people building T3 Code. These are who you are talking to now.
+- **we, us, and maintainers** mean the owner of this repository. That is who you are talking to now.
 - **user** means the person using T3 Code to direct coding agents.
 - **agent** means the coding agent a user runs inside T3 Code. Depending on context, that may also include you.
 - **provider** means the agent runtime or harness T3 Code talks to, such as Codex, Claude, Cursor, or OpenCode.
