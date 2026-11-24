@@ -636,7 +636,10 @@ function PoolWindowCard({
 
 function PoolSection({ pool, now }: { readonly pool: LimitPool; readonly now: number }) {
   const color = barColor(pool.driver);
-  const label = providerClients.get(pool.driver)?.label ?? String(pool.driver);
+  // Z.AI accounts come only from a usage source, so no provider client names them.
+  const label =
+    providerClients.get(pool.driver)?.label ??
+    (pool.driver === "zai" ? "Z.AI" : String(pool.driver));
   const windows = displayLimitWindows(pool);
   const m = useMessages();
   return (

@@ -191,6 +191,14 @@ This connection supplies usage information; configure
 the provider separately to send agent requests through the hub. Remove the hub from the same
 settings section when you no longer need it.
 
+## Track a Z.AI Coding Plan
+
+To see a GLM Coding Plan's limits without running an agent that uses it, open
+**Settings → Providers → Usage providers → Add hub**, choose **Z.AI Coding Plan**, and enter the
+plan's API key. Keep the prefilled `https://api.z.ai`, or use `https://open.bigmodel.cn` for a plan
+bought on the China mainland site. The session and weekly windows appear under **Usage → Limits**
+with the number of reset cards you hold and when the next one expires. Redeem reset cards in Z.AI.
+
 ## Subscription usage widget
 
 Add **Subscription usage** from your iOS or Android widget gallery to see remaining Codex and

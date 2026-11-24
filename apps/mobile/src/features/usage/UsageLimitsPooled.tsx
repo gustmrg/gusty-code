@@ -506,7 +506,9 @@ export function UsageLimitsSection({
               <View className="flex-row items-center gap-2 px-1">
                 <ProviderIcon provider={pool.driver} size={18} />
                 <Text className="text-base font-t3-medium text-foreground">
-                  {providerClients.get(pool.driver)?.label ?? pool.driver}
+                  {/* Z.AI accounts come only from a usage source, so no provider client names them. */}
+                  {providerClients.get(pool.driver)?.label ??
+                    (pool.driver === "zai" ? "Z.AI" : pool.driver)}
                 </Text>
               </View>
               {windows.map((window) => {

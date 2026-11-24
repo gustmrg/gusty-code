@@ -7321,6 +7321,11 @@
   "84eb2878dc17d3eb": "관리 키",
   "7ac196c1e8175928": "기본값은 허브의 호스트 이름",
   "e3548407052e9e12": "CLIProxyAPI 허브 추가",
+  "52c8538000af11ca": "Z.AI Coding Plan 추가",
+  "c9085a406e336a05": "허브 유형",
+  "cd6c74973352ef93": "{environment}에 GLM Coding Plan 할당량과 초기화 카드를 표시합니다. 키는 해당 서버에 남아 있습니다.",
+  "755725a3633ede24": "중국 본토 사이트에서 구매한 플랜은 {url}을(를) 사용하세요.",
+  "47e5dcea6685bac6": "기본값은 {name}",
   "432e85a50e2e7964": [
     {
       "i": 1,
@@ -11547,7 +11552,7 @@
   "9f5280c955132ee1": "캡처 애니메이션",
   "f8d32e19131fd5b3": "에이전트 CLI Codex Claude Cursor Grok fx Kiro OpenCode Antigravity Google 로그인 로그아웃 설치 구독 인스턴스 인증 API 키 모델 구성 바이너리 경로 구성 디렉터리 codex_home 섀도 홈 엔드포인트 인수 환경 변수 표시 이름 강조 색상 사용자 지정 즐겨찾기 숨김 자동 압축 네이티브 세션 가져오기 재개",
   "ad371af21e5b4b01": "사용량 제공자",
-  "9d9d31a4f3d5ff69": "사용량 소스 CLIProxyAPI CLI 프록시 허브 할당량 구독 한도 관리 키 추가 제거",
+  "1772ac88c381add6": "사용량 소스 CLIProxyAPI CLI 프록시 허브 할당량 구독 한도 관리 키 추가 제거 Z.AI GLM 코딩 플랜 API 키",
   "d65fa0946585b245": "텍스트 생성기",
   "e6fd69a8a3bb69e2": "모델 API API 키 OpenAI OpenRouter Anthropic Ollama LM Studio 사용자 지정 엔드포인트 기본 URL 스레드 제목 커밋 메시지",
   "f2b07faba1229ce7": "상태 확인 간격",

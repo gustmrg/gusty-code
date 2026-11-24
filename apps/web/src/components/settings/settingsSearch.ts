@@ -1043,7 +1043,7 @@ export const SETTINGS_SEARCH_ITEMS = [
     to: "/settings/providers",
     searchTerms: [
       msg(
-        "usage sources CLIProxyAPI CLI proxy hub quota subscription limits management key add remove",
+        "usage sources CLIProxyAPI CLI proxy hub Z.AI GLM coding plan quota subscription limits management key API key add remove",
       ),
     ],
     providerSettingsOnly: true,

@@ -1,4 +1,9 @@
-import type { EnvironmentId, SecretReference, UnifiedSettings } from "@t3tools/contracts";
+import type {
+  EnvironmentId,
+  SecretReference,
+  UnifiedSettings,
+  UsageLimitSourceKind,
+} from "@t3tools/contracts";
 import { T, useGT, Var } from "gt-react";
 import { useId, useState } from "react";
 
@@ -14,11 +19,17 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { sourceIdFromUrl } from "./AddUsageLimitSourceDialog.logic";
+import { Toggle, ToggleGroup } from "../ui/toggle-group";
+import {
+  CLI_PROXY_SOURCE_NAME,
+  sourceIdFromUrl,
+  ZAI_DEFAULT_URL,
+  ZAI_SOURCE_NAME,
+} from "./AddUsageLimitSourceDialog.logic";
 import { SecretSourceInput, useSecretSources } from "./SecretSourceInput";
 import { Label } from "../ui/label";
 
-/** Send the management key once to server secret storage; settings retain only a redaction marker. */
+/** Send the key once to server secret storage; settings retain only a redaction marker. */
 export function AddUsageLimitSourceDialog({
   open,
   onOpenChange,
@@ -35,6 +46,7 @@ export function AddUsageLimitSourceDialog({
   const gt = useGT();
   const formId = useId();
   const updateSettings = useUpdateEnvironmentSettings(environmentId);
+  const [kind, setKind] = useState<UsageLimitSourceKind>("cliproxy");
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
   const secretSources = useSecretSources(environmentId);
@@ -45,6 +57,7 @@ export function AddUsageLimitSourceDialog({
   const canSave = keyValid && trimmedUrl.length > 0 && managementKey !== "";
 
   const reset = () => {
+    setKind("cliproxy");
     setLabel("");
     setUrl("");
     setKeyDraft("");
@@ -53,11 +66,11 @@ export function AddUsageLimitSourceDialog({
 
   const save = () => {
     if (!canSave) return;
-    const id = sourceIdFromUrl(trimmedUrl, sources);
+    const id = sourceIdFromUrl(trimmedUrl, sources, kind);
     updateSettings({
       usageLimitSources: {
         [id]: {
-          kind: "cliproxy",
+          kind,
           ...(label.trim() ? { label: label.trim() } : {}),
           url: trimmedUrl,
           managementKey,
@@ -80,13 +93,20 @@ export function AddUsageLimitSourceDialog({
       <DialogPopup className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            <T>Add a CLIProxyAPI hub</T>
+            {kind === "zai" ? <T>Add a Z.AI Coding Plan</T> : <T>Add a CLIProxyAPI hub</T>}
           </DialogTitle>
           <DialogDescription>
-            <T>
-              Show the quota of every account the hub pools, next to the providers on{" "}
-              <Var>{environmentLabel}</Var>. The key stays on that server.
-            </T>
+            {kind === "zai" ? (
+              gt(
+                "Show the GLM Coding Plan quota and reset cards on {environment}. The key stays on that server.",
+                { environment: environmentLabel },
+              )
+            ) : (
+              <T>
+                Show the quota of every account the hub pools, next to the providers on{" "}
+                <Var>{environmentLabel}</Var>. The key stays on that server.
+              </T>
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
@@ -98,25 +118,48 @@ export function AddUsageLimitSourceDialog({
               save();
             }}
           >
+            <ToggleGroup
+              aria-label={gt("Hub type")}
+              variant="segmented"
+              value={[kind]}
+              onValueChange={(next) => {
+                const value = next[0];
+                if (value !== "cliproxy" && value !== "zai") return;
+                setKind(value);
+                // Prefill Z.AI's API, and drop it again when the user did not change it.
+                if (value === "zai" && url.trim() === "") setUrl(ZAI_DEFAULT_URL);
+                if (value === "cliproxy" && url === ZAI_DEFAULT_URL) setUrl("");
+              }}
+            >
+              <Toggle value="cliproxy">{CLI_PROXY_SOURCE_NAME}</Toggle>
+              <Toggle value="zai">{ZAI_SOURCE_NAME}</Toggle>
+            </ToggleGroup>
             <div className="grid gap-1.5">
               <Label htmlFor="usage-source-url">
-                <T>Hub URL</T>
+                {kind === "zai" ? <T>Base URL</T> : <T>Hub URL</T>}
               </Label>
               <Input
                 id="usage-source-url"
-                placeholder="https://hub.example.ts.net:8318"
+                placeholder={kind === "zai" ? ZAI_DEFAULT_URL : "https://hub.example.ts.net:8318"}
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
                 autoFocus
               />
+              {kind === "zai" ? (
+                <p className="text-xs text-muted-foreground">
+                  {gt("Use {url} for a plan bought on the China mainland site.", {
+                    url: "https://open.bigmodel.cn",
+                  })}
+                </p>
+              ) : null}
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="usage-source-key">
-                <T>Management key</T>
+                {kind === "zai" ? gt("API key") : <T>Management key</T>}
               </Label>
               <SecretSourceInput
                 id="usage-source-key"
-                aria-label={gt("Management key")}
+                aria-label={kind === "zai" ? gt("API key") : gt("Management key")}
                 value={keyDraft}
                 sources={secretSources}
                 environmentId={environmentId}
@@ -131,7 +174,11 @@ export function AddUsageLimitSourceDialog({
               </Label>
               <Input
                 id="usage-source-label"
-                placeholder={gt("Defaults to the hub's host name")}
+                placeholder={
+                  kind === "zai"
+                    ? gt("Defaults to {name}", { name: ZAI_SOURCE_NAME })
+                    : gt("Defaults to the hub's host name")
+                }
                 value={label}
                 onChange={(event) => setLabel(event.target.value)}
               />

@@ -22,7 +22,7 @@ import {
   TrimmedNonEmptyString,
   TrimmedString,
 } from "./baseSchemas.ts";
-import { UsageLimitSourceId } from "./usageLimitSourceId.ts";
+import { UsageLimitSourceId, UsageLimitSourceKind } from "./usageLimitSourceId.ts";
 import { UsageModelFilter } from "./usage.ts";
 import { SecretProviderId, SecretProviderSlug } from "./secretReference.ts";
 import { containsSecretReference, SettingsSecretValue } from "./settingsSecretValue.ts";
@@ -931,8 +931,9 @@ export const AntigravitySettings = makeProviderSettingsSchema(
 );
 export type AntigravitySettings = typeof AntigravitySettings.Type;
 
+/** For `zai`, `url` is the Z.AI API base and `managementKey` holds the API key. */
 export const UsageLimitSourceConfig = Schema.Struct({
-  kind: Schema.Literal("cliproxy"),
+  kind: UsageLimitSourceKind,
   label: Schema.optional(TrimmedNonEmptyString),
   url: TrimmedNonEmptyString,
   managementKey: SettingsSecretValue.pipe(
