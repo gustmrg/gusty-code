@@ -3421,9 +3421,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       onModelPickerOpenChange={setIsComposerModelPickerOpen}
       modelPickerIconClassName={composerProviderState.modelPickerIconClassName}
       getModelDisabledReason={getModelDisabledReason}
-      attachButton={
-        composerControlsCollapsed || dictationTakesFooter ? null : composerAttachButton
-      }
+      attachButton={composerControlsCollapsed || dictationTakesFooter ? null : composerAttachButton}
     />
   );
   return (
