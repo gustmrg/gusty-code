@@ -569,7 +569,12 @@ const TOP_STATUS_ICONS = {
 
 function TopStatusIcon(props: { icon: keyof typeof TOP_STATUS_ICONS; className: string }) {
   const Icon = TOP_STATUS_ICONS[props.icon];
-  return <Icon aria-hidden className={cn("shrink-0", props.className)} />;
+  return (
+    <Icon
+      aria-hidden
+      className={cn("shrink-0", props.icon === "working" && "animate-spin", props.className)}
+    />
+  );
 }
 
 type SidebarThreadRowProps = {

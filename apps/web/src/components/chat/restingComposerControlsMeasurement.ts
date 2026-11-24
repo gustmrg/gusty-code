@@ -86,7 +86,9 @@ export function measureRestingComposerControls(
   const separator = controls.querySelector<HTMLElement>("[data-resting-controls-separator]");
   const separatorWidth = separator ? elementOuterWidth(separator) : 0;
   const overflow = controls.querySelector<HTMLElement>("[data-resting-controls-overflow]");
-  const separatorAndGapWidth = separatorWidth > 0 ? separatorWidth + gap : 0;
+  const attachSlot = controls.querySelector<HTMLElement>("[data-composer-attach-slot]");
+  const attachSlotWidth = attachSlot ? elementOuterWidth(attachSlot) + gap : 0;
+  const separatorAndGapWidth = (separatorWidth > 0 ? separatorWidth + gap : 0) + attachSlotWidth;
   const blocks = Array.from(controls.querySelectorAll<HTMLElement>("[data-resting-block]"));
   const widths = blocks.map(controlBlockWidths);
   return {
