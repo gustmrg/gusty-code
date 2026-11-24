@@ -58,7 +58,7 @@ describe("environment release checks", () => {
   const signal = new AbortController().signal;
   const feed = (...tags: ReadonlyArray<string>) =>
     new Response(
-      `<feed><id>tag:github.com,2008:https://github.com/pingdotgg/t3code/releases</id>${tags
+      `<feed><id>tag:github.com,2008:https://github.com/gustmrg/gusty-code/releases</id>${tags
         .map((tag) => `<entry><id>tag:github.com,2008:Repository/1/${tag}</id></entry>`)
         .join("")}</feed>`,
     );
@@ -67,7 +67,7 @@ describe("environment release checks", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) =>
-        url === "https://github.com/pingdotgg/t3code/releases.atom"
+        url === "https://github.com/gustmrg/gusty-code/releases.atom"
           ? feed(
               "desktop-preview",
               "v1.0.0-preview.20260924.3",
@@ -90,14 +90,17 @@ describe("environment release checks", () => {
 
   it("finds a published preview beyond the ten-entry feed and first API page", async () => {
     const nightlies = Array.from({ length: 10 }, (_, i) => `v1.0.0-nightly.20260930.${i}`);
+    const atomFeed = "https://github.com/gustmrg/gusty-code/releases.atom";
+    const page1 = "https://api.github.com/repos/gustmrg/gusty-code/releases?per_page=100&page=1";
+    const page2 = "https://api.github.com/repos/gustmrg/gusty-code/releases?per_page=100&page=2";
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) => {
-        if (url === "https://github.com/pingdotgg/t3code/releases.atom") return feed(...nightlies);
-        if (url === "https://api.github.com/repos/pingdotgg/t3code/releases?per_page=100&page=1") {
+        if (url === atomFeed) return feed(...nightlies);
+        if (url === page1) {
           return Response.json(Array.from({ length: 100 }, () => ({ tag_name: "v2.0.0" })));
         }
-        if (url === "https://api.github.com/repos/pingdotgg/t3code/releases?per_page=100&page=2") {
+        if (url === page2) {
           return Response.json([
             { tag_name: "v1.0.0-preview.20260925.1", draft: true },
             { tag_name: "v1.0.0-preview.20260924.3" },
