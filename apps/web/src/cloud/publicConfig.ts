@@ -61,28 +61,13 @@ export function resolveCloudPublicConfig(): CloudPublicConfig {
   };
 }
 
-let desktopRelayTelemetry: boolean | null = null;
-
-/** Whether relay spans may be exported now; the desktop host may not know yet at startup. */
+/** Relay tracing to external services is disabled in Gusty Code. */
 export function relayTelemetryEnabled(): boolean | null {
-  if (typeof window === "undefined" || !window.desktopBridge) return true;
-  desktopRelayTelemetry ??= window.desktopBridge.getRelayTelemetryEnabled();
-  return desktopRelayTelemetry;
+  return false;
 }
 
-export function resolveRelayTracingConfig() {
-  // The relay exporter is created during module initialization, so this must be synchronous.
-  if (relayTelemetryEnabled() === false) {
-    return null;
-  }
-  const { relayTracing } = resolveCloudPublicConfig();
-  return relayTracing.tracesUrl && relayTracing.tracesDataset && relayTracing.tracesToken
-    ? {
-        tracesUrl: relayTracing.tracesUrl,
-        tracesDataset: relayTracing.tracesDataset,
-        tracesToken: relayTracing.tracesToken,
-      }
-    : null;
+export function resolveRelayTracingConfig(): null {
+  return null;
 }
 
 export function hasCloudPublicConfig(): boolean {
