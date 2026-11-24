@@ -2,17 +2,17 @@
 
 Gusty Code is a minimal GUI for coding agents. A Node WebSocket server wraps provider CLIs and agents (Codex, Claude Code, Cursor, Grok, OpenCode, Antigravity, Kiro, Pi, Muse Code, fx) and serves web, desktop, and mobile clients.
 
-Gusty Code is a fork of T3 Code. It lives at `gustmrg/t3code` and tracks the stable releases of `pingdotgg/t3code`, called upstream here. Most of the code and of the guidance below comes from upstream. Where that guidance says T3 Code, read it as this codebase; "we", "maintainers", and "the developer" mean the owner of this repository. Where it conflicts with the fork workflow in the sections that follow, the fork workflow wins.
+Gusty Code is a fork of T3 Code. It lives at `gustmrg/gusty-code` and tracks the stable releases of `pingdotgg/t3code`, called upstream here. Most of the code and of the guidance below comes from upstream. Where that guidance says T3 Code, read it as this codebase; "we", "maintainers", and "the developer" mean the owner of this repository. Where it conflicts with the fork workflow in the sections that follow, the fork workflow wins.
 
 Most changes here are made by agents running inside Gusty Code itself, often controlled remotely. Be careful accessing data, killing dev servers, and anything else that may damage the instance the developer is using.
 
 ## Remotes
 
-- `origin` is `gustmrg/t3code`. Push, open PRs, and file issues here.
+- `origin` is `gustmrg/gusty-code`. Push, open PRs, and file issues here.
 - `upstream` is `pingdotgg/t3code`, fetch only. Its push URL is set to `DISABLE`. Never push to upstream or open PRs, issues, or comments there.
-- `gh` targets a fork's parent repository by default. Run `gh repo set-default gustmrg/t3code` once per clone, and pass `--repo gustmrg/t3code` when in doubt.
-- Run `git config merge.ours.driver true` once per clone. `.gitattributes` uses it so `README.md` and `AGENTS.md` keep this repository's version on every sync.
-- Upstream's forge mirror and release pipeline do not apply here. `release.yml` and the other upstream workflows only run on `pingdotgg/t3code`.
+- `gh` targets a fork's parent repository by default. Run `gh repo set-default gustmrg/gusty-code` once per clone, and pass `--repo gustmrg/gusty-code` when in doubt.
+- Run `git config merge.ours.driver true` once per clone. `.gitattributes` uses it so `README.md`, `AGENTS.md`, `.github/workflows/ci.yml`, and `.github/workflows/release.yml` keep this repository's version on every sync.
+- Upstream's forge mirror, mobile/relay deploys, and signed release pipeline do not apply here. `.github/workflows/ci.yml` and `.github/workflows/release.yml` are customized in place for Gusty Code, and the unused upstream workflows are disabled in Actions settings.
 
 ## Branches
 
@@ -57,8 +57,8 @@ Every upstream file this repository edits is a possible conflict on every sync.
 
 - Prefer settings, themes, and configuration over editing upstream components.
 - Put Gusty-only code in new files when possible.
-- Never edit or delete upstream workflow files. Disable the ones Gusty Code does not use in the repository's Actions settings, and keep Gusty workflows in their own files.
-- Release tags and versioning are not defined yet. Do not create tags or GitHub releases until they are.
+- `.github/workflows/ci.yml` and `.github/workflows/release.yml` are customized in place for Gusty Code and protected with `merge=ours` in `.gitattributes`. Disable unused upstream workflows in the repository's Actions settings instead of maintaining them.
+- Gusty Code releases use `gusty-vX.Y.Z` tags (never plain `vX.Y.Z`, which collides with upstream tags) or manual `workflow_dispatch` on `release.yml`. Builds are unsigned, exclude T3 Connect cloud config, and target Windows x64 (without WSL runtime), Linux x64, and macOS arm64.
 - The earlier work, before the restart on `v0.1.11`, is in `archive/main-2026-10`. Recover from it selectively; do not merge it.
 
 ## A small glossary
