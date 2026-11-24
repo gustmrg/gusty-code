@@ -70,10 +70,10 @@ describe("environment release checks", () => {
         url === "https://github.com/gustmrg/gusty-code/releases.atom"
           ? feed(
               "desktop-preview",
-              "v1.0.0-preview.20260924.3",
-              "v1.0.0-nightly.20260924.2",
-              "v1.0.0",
-              "v1.0.0-nightly.20260923.1",
+              "gusty-v1.0.0-preview.20260924.3",
+              "gusty-v1.0.0-nightly.20260924.2",
+              "gusty-v1.0.0",
+              "gusty-v1.0.0-nightly.20260923.1",
             )
           : new Response(null, { status: 403 }),
       ),
@@ -89,7 +89,7 @@ describe("environment release checks", () => {
   });
 
   it("finds a published preview beyond the ten-entry feed and first API page", async () => {
-    const nightlies = Array.from({ length: 10 }, (_, i) => `v1.0.0-nightly.20260930.${i}`);
+    const nightlies = Array.from({ length: 10 }, (_, i) => `gusty-v1.0.0-nightly.20260930.${i}`);
     const atomFeed = "https://github.com/gustmrg/gusty-code/releases.atom";
     const page1 = "https://api.github.com/repos/gustmrg/gusty-code/releases?per_page=100&page=1";
     const page2 = "https://api.github.com/repos/gustmrg/gusty-code/releases?per_page=100&page=2";
@@ -98,12 +98,12 @@ describe("environment release checks", () => {
       vi.fn(async (url: string) => {
         if (url === atomFeed) return feed(...nightlies);
         if (url === page1) {
-          return Response.json(Array.from({ length: 100 }, () => ({ tag_name: "v2.0.0" })));
+          return Response.json(Array.from({ length: 100 }, () => ({ tag_name: "gusty-v2.0.0" })));
         }
         if (url === page2) {
           return Response.json([
-            { tag_name: "v1.0.0-preview.20260925.1", draft: true },
-            { tag_name: "v1.0.0-preview.20260924.3" },
+            { tag_name: "gusty-v1.0.0-preview.20260925.1", draft: true },
+            { tag_name: "gusty-v1.0.0-preview.20260924.3" },
           ]);
         }
         throw new Error(`Unexpected release request: ${url}`);
@@ -122,7 +122,9 @@ describe("environment release checks", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) =>
-        url.endsWith(".atom") ? feed("v1.0.0") : Response.json([{ tag_name: "v1.0.0" }]),
+        url.endsWith(".atom")
+          ? feed("gusty-v1.0.0")
+          : Response.json([{ tag_name: "gusty-v1.0.0" }]),
       ),
     );
     await expect(findEnvironmentUpdate("1.0.0-nightly.20260923.1", signal)).rejects.toThrow(
