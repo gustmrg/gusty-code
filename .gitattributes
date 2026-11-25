@@ -13,3 +13,5 @@ README.md merge=ours
 AGENTS.md merge=ours
 .github/workflows/ci.yml merge=ours
 .github/workflows/release.yml merge=ours
+# A no-op stand-in for upstream's analytics service; Gusty Code sends no product analytics.
+apps/server/src/telemetry/AnalyticsService.ts merge=ours

@@ -27,7 +27,7 @@ vp i
 vp run dev
 ```
 
-Open the pairing URL printed by the dev runner. The [development runbook](./docs/operations/development.md) covers the details.
+Open the pairing URL printed by the dev runner. The [development runbook](./docs/operations/00_development.md) covers the details.
 
 You need at least one agent installed and signed in, for example [Claude Code](https://claude.com/product/claude-code) with `claude auth login` or [Codex CLI](https://developers.openai.com/codex/cli) with `codex login`. See [provider setup](./docs/user/install.md#providers).
 

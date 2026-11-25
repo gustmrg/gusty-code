@@ -61,6 +61,8 @@ export function resolveCloudPublicConfig(): CloudPublicConfig {
   };
 }
 
+export function setServerRelayTelemetry(_allowed: boolean | null): void {}
+
 /** Relay tracing to external services is disabled in Gusty Code. */
 export function relayTelemetryEnabled(): boolean | null {
   return false;

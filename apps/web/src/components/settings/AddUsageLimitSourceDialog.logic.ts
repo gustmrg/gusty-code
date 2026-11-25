@@ -26,7 +26,7 @@ export function sourceIdFromUrl(
     .replace(/[^a-z0-9.-]+/g, "-")
     .replace(/^-+|-+$/g, "");
   // Settings merge by ID, so adding a different hub must not replace an existing entry.
-  const base = `${kind}-${slug || "hub"}`;
+  const base = `${kind}-${slug || "source"}`;
   let id = base;
   for (let suffix = 2; id in sources; suffix += 1) {
     id = `${base}-${suffix}`;
