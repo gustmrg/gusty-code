@@ -15,6 +15,7 @@ import {
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
 import { AddUsageLimitSourceDialog } from "./AddUsageLimitSourceDialog";
+import { ZAI_SOURCE_NAME } from "./AddUsageLimitSourceDialog.logic";
 import { useSearchableSetting } from "./settingsSearch";
 import { SettingsRow, SettingsSection } from "./settingsLayout";
 
@@ -54,6 +55,7 @@ export function UsageProviderSettings({
           <SettingsRow title={gt("No hubs configured.")} />
         ) : (
           entries.map(([id, source]) => {
+            const name = source.kind === "zai" ? ZAI_SOURCE_NAME : CLI_PROXY_NAME;
             const label = source.label?.trim() || source.url;
             return (
               <SettingsRow
@@ -61,9 +63,7 @@ export function UsageProviderSettings({
                 title={label}
                 description={
                   <span className="break-all">
-                    {source.enabled
-                      ? CLI_PROXY_NAME
-                      : gt("{name} · Disabled", { name: CLI_PROXY_NAME })}
+                    {source.enabled ? name : gt("{name} · Disabled", { name })}
                     {label !== source.url ? ` · ${source.url}` : ""}
                   </span>
                 }

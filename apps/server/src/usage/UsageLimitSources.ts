@@ -29,6 +29,7 @@ import { resolveSettingsSecrets } from "../secrets/settingsSecretValue.ts";
 import * as Settings from "../serverSettings.ts";
 import { windowLimitsModel } from "../provider/claudeUsageLimits.ts";
 import { makeCliproxyApi } from "./cliproxyApi.ts";
+import { makeZaiApi } from "./zaiApi.ts";
 
 export class UsageLimitSources extends Context.Service<
   UsageLimitSources,
@@ -44,6 +45,7 @@ export class UsageLimitSources extends Context.Service<
 
 function sourceLabel(id: string, config: UsageLimitSourceConfig): string {
   if (config.label) return config.label;
+  if (config.kind === "zai") return "Z.AI Coding Plan";
   const fallback = id.trim() || "Usage limit source";
   try {
     return new URL(config.url).host || fallback;
@@ -70,16 +72,26 @@ function keepLastGoodReadings(
       ...source,
       accounts: source.accounts.map((account) => {
         if (account.usageLimits.unavailable?.reason !== "probeFailed") return account;
+        // Z.AI fingerprints its key even on a failed read, so the same key may lend its reading.
+        const fingerprint = account.usageLimits.credentialFingerprint;
         // Without a listed login, a reused auth file name cannot be told apart from the old one.
-        if (account.email === undefined && account.workspaceId === undefined) return account;
+        if (
+          account.email === undefined &&
+          account.workspaceId === undefined &&
+          fingerprint === undefined
+        ) {
+          return account;
+        }
         const last = before.accounts.find(
           (candidate) =>
             candidate.id === account.id &&
             candidate.driver === account.driver &&
-            // Fingerprinted Antigravity readings omit the listed identity, so they are never lent.
-            candidate.usageLimits.credentialFingerprint === undefined &&
-            candidate.email === account.email &&
-            candidate.workspaceId === account.workspaceId,
+            (fingerprint === undefined
+              ? // Fingerprinted Antigravity readings omit the listed identity, so they are never lent.
+                candidate.usageLimits.credentialFingerprint === undefined &&
+                candidate.email === account.email &&
+                candidate.workspaceId === account.workspaceId
+              : candidate.usageLimits.credentialFingerprint === fingerprint),
         );
         return last && !last.usageLimits.unavailable ? last : account;
       }),
@@ -88,14 +100,16 @@ function keepLastGoodReadings(
 }
 
 function missingManagementKey(config: UsageLimitSourceConfig): string {
+  const key = config.kind === "zai" ? "API key" : "management key";
   return typeof config.managementKey === "string"
-    ? "No management key configured."
-    : "Could not read the management key from its secret provider.";
+    ? `No ${key} configured.`
+    : `Could not read the ${key} from its secret provider.`;
 }
 
 /** @public */
 export const make = Effect.gen(function* () {
   const api = yield* makeCliproxyApi;
+  const zai = yield* makeZaiApi;
   const settingsService = yield* Settings.ServerSettingsService;
   const secrets = yield* SecretResolver.SecretResolver;
   const backgroundPolicy = yield* BackgroundPolicy.BackgroundPolicy;
@@ -121,7 +135,8 @@ export const make = Effect.gen(function* () {
       id,
       kind: config.kind,
       label: sourceLabel(id, config),
-      ...(url && /^https?:$/.test(url.protocol)
+      // Only a hub also serves agents, which the reset fallback matches by origin.
+      ...(config.kind === "cliproxy" && url && /^https?:$/.test(url.protocol)
         ? {
             origin: url.origin,
             endpoint: `${url.origin}${url.pathname.replace(/(\/management\.html)?\/*$/i, "")}`,
@@ -133,9 +148,13 @@ export const make = Effect.gen(function* () {
     if (managementKey.length === 0) {
       return { ...base, accounts: [], error: missingManagementKey(config) };
     }
-    const accounts = yield* api
-      .readAccounts({ url: config.url, managementKey })
-      .pipe(Effect.result);
+    const accounts = yield* Effect.result(
+      config.kind === "zai"
+        ? Effect.map(zai.readAccount({ url: config.url, apiKey: managementKey }), (account) => [
+            account,
+          ])
+        : api.readAccounts({ url: config.url, managementKey }),
+    );
     if (accounts._tag === "Failure") {
       yield* Effect.logDebug("usage limit source read failed", { id, cause: accounts.failure });
       return { ...base, accounts: [], error: accounts.failure.detail };
@@ -180,6 +199,11 @@ export const make = Effect.gen(function* () {
     if (!config?.enabled) {
       return yield* new UsageLimitSourceError({
         detail: "The usage limit source is missing or disabled.",
+      });
+    }
+    if (config.kind === "zai") {
+      return yield* new UsageLimitSourceError({
+        detail: "Z.AI reset cards can only be redeemed in Z.AI.",
       });
     }
     const managementKey = yield* readManagementKey(config);
