@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/gusty/gusty-mark-light.svg">
+    <img src="assets/gusty/gusty-mark-dark.svg" alt="" width="96" height="96">
+  </picture>
+</p>
+
 <h1 align="center">Gusty Code</h1>
 
 <p align="center">A personal, privacy-focused fork of <a href="https://github.com/pingdotgg/t3code">T3 Code</a>.</p>
