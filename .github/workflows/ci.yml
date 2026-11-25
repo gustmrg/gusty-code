@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
+  # Squash merges repeat what the pull request already checked, so main does not rerun CI.
+  # Dispatch it from the Actions tab for a full run of every job.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -98,11 +98,16 @@ jobs:
             !/apps/mobile/modules/t3-terminal/Vendor/**/*.a
           sparse-checkout-cone-mode: false
 
-      - name: Install browser secret helper build libraries
+      # The desktop build compiles the browser secret helper. apt runs in the
+      # background while Vite+ installs; the step before the build waits for it.
+      - name: Start installing browser secret helper build libraries
         if: needs.changes.outputs.build != 'false'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libsecret-1-dev pkg-config
+          (
+            set +e
+            sudo apt-get update && sudo apt-get install -y libsecret-1-dev pkg-config
+            echo "$?" > "$RUNNER_TEMP/apt-status"
+          ) > "$RUNNER_TEMP/apt.log" 2>&1 < /dev/null &
 
       - name: Setup Vite+
         uses: ./.github/actions/setup-ci-deps
@@ -120,6 +125,14 @@ jobs:
         if: needs.changes.outputs.typecheck != 'false'
         run: vp run typecheck
 
+      - name: Finish installing browser secret helper build libraries
+        if: needs.changes.outputs.build != 'false'
+        timeout-minutes: 5
+        run: |
+          until test -s "$RUNNER_TEMP/apt-status"; do sleep 1; done
+          cat "$RUNNER_TEMP/apt.log"
+          exit "$(cat "$RUNNER_TEMP/apt-status")"
+
       - name: Build desktop pipeline
         if: needs.changes.outputs.build != 'false'
         run: vp run build:desktop
@@ -128,12 +141,23 @@ jobs:
         if: needs.changes.outputs.build != 'false'
         run: node apps/desktop/scripts/verify-preload-bundle.mjs
 
+  # apps/mobile is the longest suite (~3.5 min) and ran alone after the other packages finished,
+  # so it splits across two runners while every other package shares a third.
   test:
-    name: Test
+    name: Test (${{ matrix.name }})
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.test != 'false' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: packages
+          - name: mobile 1/2
+            mobile_shard: 1/2
+          - name: mobile 2/2
+            mobile_shard: 2/2
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -144,42 +168,81 @@ jobs:
             !/apps/mobile/modules/t3-terminal/Vendor/**/*.a
           sparse-checkout-cone-mode: false
 
-      - name: Install browser secret helper build libraries
+      # `changes` lists the affected packages, or nothing when all of them are.
+      - name: Select packages
+        id: scope
+        env:
+          TEST_PACKAGES: ${{ needs.changes.outputs.test_packages }}
+          MOBILE_SHARD: ${{ matrix.mobile_shard }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libsecret-1-dev pkg-config
+          affected() { [[ -z "$TEST_PACKAGES" || " $TEST_PACKAGES " == *" $1 "* ]]; }
+          if [[ -n "$MOBILE_SHARD" ]]; then
+            if affected @t3tools/mobile; then echo "run=true"; else echo "run=false"; fi >> "$GITHUB_OUTPUT"
+            echo "desktop=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # @t3tools/scripts tests assert upstream release.yml steps (e.g. Discord announcements).
+          filters="--filter !t3 --filter !@t3tools/monorepo --filter !@t3tools/web --filter !@t3tools/scripts --filter !@t3tools/mobile"
+          if [[ -n "$TEST_PACKAGES" ]]; then
+            filters=""
+            for package in $TEST_PACKAGES; do
+              [[ "$package" == "@t3tools/scripts" || "$package" == "@t3tools/mobile" ]] && continue
+              filters+=" --filter $package"
+            done
+          fi
+          if [[ -n "$filters" ]]; then echo "run=true"; else echo "run=false"; fi >> "$GITHUB_OUTPUT"
+          # Only the desktop tests need Electron and the libsecret headers for the browser secret helper.
+          if affected @t3tools/desktop; then echo "desktop=true"; else echo "desktop=false"; fi >> "$GITHUB_OUTPUT"
+          echo "filters=$filters" >> "$GITHUB_OUTPUT"
+
+      # apt runs in the background while Vite+ installs; the step before the tests waits for it.
+      - name: Start installing browser secret helper build libraries
+        if: steps.scope.outputs.desktop == 'true'
+        run: |
+          (
+            set +e
+            sudo apt-get update && sudo apt-get install -y libsecret-1-dev pkg-config
+            echo "$?" > "$RUNNER_TEMP/apt-status"
+          ) > "$RUNNER_TEMP/apt.log" 2>&1 < /dev/null &
 
       - name: Setup Vite+
+        if: steps.scope.outputs.run == 'true'
         uses: ./.github/actions/setup-ci-deps
 
       - name: Cache Electron download
+        if: steps.scope.outputs.desktop == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/electron
           key: electron-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('node_modules/.pnpm/electron@*/node_modules/electron/package.json') }}
 
       - name: Ensure Electron runtime is installed
+        if: steps.scope.outputs.desktop == 'true'
         run: vp run --filter @t3tools/desktop ensure:electron
 
+      - name: Finish installing browser secret helper build libraries
+        if: steps.scope.outputs.desktop == 'true'
+        timeout-minutes: 5
+        run: |
+          until test -s "$RUNNER_TEMP/apt-status"; do sleep 1; done
+          cat "$RUNNER_TEMP/apt.log"
+          exit "$(cat "$RUNNER_TEMP/apt-status")"
+
       - name: Test
+        if: steps.scope.outputs.run == 'true'
         env:
-          TEST_PACKAGES: ${{ needs.changes.outputs.test_packages }}
+          FILTERS: ${{ steps.scope.outputs.filters }}
+          MOBILE_SHARD: ${{ matrix.mobile_shard }}
         run: |
           set -o pipefail
-          # @t3tools/scripts tests assert upstream release.yml steps (e.g. Discord announcements).
-          filters=(--filter '!t3' --filter '!@t3tools/monorepo' --filter '!@t3tools/web' --filter '!@t3tools/scripts')
-          if [[ -n "$TEST_PACKAGES" ]]; then
-            filters=()
-            for package in $TEST_PACKAGES; do
-              [[ "$package" == "@t3tools/scripts" ]] && continue
-              filters+=(--filter "$package")
-            done
-            if [[ ${#filters[@]} -eq 0 ]]; then
-              echo "No affected workspace packages to test."
-              exit 0
-            fi
+          if [[ -n "$MOBILE_SHARD" ]]; then
+            args=(--filter @t3tools/mobile test --shard "$MOBILE_SHARD")
+          else
+            read -ra filters <<< "$FILTERS"
+            args=(--parallel --concurrency-limit 4 "${filters[@]}" test)
           fi
-          vp run --parallel --concurrency-limit 4 "${filters[@]}" test 2>&1 | python3 -u -c '
+          # The runner's trace writer can crash on surrogate pairs in test output.
+          vp run "${args[@]}" 2>&1 | python3 -u -c '
           import sys
           for line in sys.stdin:
               sys.stdout.write(line.encode("ascii", "backslashreplace").decode("ascii"))
