@@ -14,16 +14,27 @@ const root = NodeURL.fileURLToPath(new URL("../", import.meta.url));
 const check = process.argv.includes("--check");
 const readSource = (name: string) =>
   NodeFSP.readFile(NodePath.join(root, "assets/gusty", name), "utf8");
-const mark = await readSource("gusty-mark.svg");
-const mono = await readSource("gusty-mark-light.svg");
+const mark = await readSource("gusty-mark-light.svg");
 
 const inner = (svg: string) => svg.replace(/<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
-const tile = (mac: boolean) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect x="${mac ? 48 : 0}" y="${mac ? 48 : 0}" width="${mac ? 416 : 512}" height="${mac ? 416 : 512}" rx="${mac ? 96 : 0}" fill="${TILE_COLOR}"/><g transform="translate(${mac ? 96 : 64} ${mac ? 96 : 64}) scale(${mac ? 0.625 : 0.75})">${inner(mark)}</g></svg>`;
-// Android adaptive icons crop to a central circle, so the mark keeps to the safe zone.
-const adaptive = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g transform="translate(100 100) scale(.609375)">${inner(mark)}</g></svg>`;
-const white = (svg: string) =>
-  svg.replace(/fill="url\(#[^)]+\)"/g, 'fill="#ffffff"').replaceAll("#E5E7EB", "#ffffff");
+const canvas = (body: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">${body}</svg>`;
+const placed = (scale: number) => {
+  const offset = (512 * (1 - scale)) / 2;
+  return `<g transform="translate(${offset} ${offset}) scale(${scale})">${inner(mark)}</g>`;
+};
+// The single-color mark only reads on both light and dark surfaces when it sits on its own tile.
+const square = canvas(`<rect width="512" height="512" fill="${TILE_COLOR}"/>${placed(0.75)}`);
+const rounded = canvas(
+  `<rect width="512" height="512" rx="112" fill="${TILE_COLOR}"/>${placed(0.8)}`,
+);
+const mac = canvas(
+  `<rect x="48" y="48" width="416" height="416" rx="96" fill="${TILE_COLOR}"/>${placed(0.625)}`,
+);
+// Android crops adaptive icons and the 12+ splash to a central circle, so the mark keeps to it.
+const adaptive = canvas(placed(0.609375));
+const splash = canvas(`<rect width="512" height="512" fill="${TILE_COLOR}"/>${placed(0.609375)}`);
+const white = (svg: string) => svg.replaceAll("#E5E7EB", "#ffffff");
 
 // Supersample, then downscale, so small sizes keep crisp edges.
 const png = async (svg: string, size: number) => {
@@ -39,18 +50,18 @@ const ico = (svg: string, sizes: ReadonlyArray<number>) =>
   );
 
 const slots = {
-  IosIconPng: () => png(tile(false), 1024),
-  MacIconPng: () => png(tile(true), 1024),
-  DesktopIconPng: () => png(tile(true), 1024),
-  LinuxIconPng: () => png(mark, 1024),
-  UniversalIconPng: () => png(mark, 1024),
-  WindowsIconIco: () => ico(mark, WINDOWS_ICON_SIZES),
-  WebFaviconIco: () => ico(mark, [16, 32, 48]),
-  WebFavicon16Png: () => png(mark, 16),
-  WebFavicon32Png: () => png(mark, 32),
-  WebAppleTouchIconPng: () => png(tile(false), 180),
-  WebIcon192Png: () => png(tile(false), 192),
-  WebIcon512Png: () => png(tile(false), 512),
+  IosIconPng: () => png(square, 1024),
+  MacIconPng: () => png(mac, 1024),
+  DesktopIconPng: () => png(mac, 1024),
+  LinuxIconPng: () => png(rounded, 1024),
+  UniversalIconPng: () => png(rounded, 1024),
+  WindowsIconIco: () => ico(rounded, WINDOWS_ICON_SIZES),
+  WebFaviconIco: () => ico(rounded, [16, 32, 48]),
+  WebFavicon16Png: () => png(rounded, 16),
+  WebFavicon32Png: () => png(rounded, 32),
+  WebAppleTouchIconPng: () => png(square, 180),
+  WebIcon192Png: () => png(square, 192),
+  WebIcon512Png: () => png(square, 512),
 } as const;
 
 const outputs = new Map<string, Buffer>();
@@ -67,9 +78,9 @@ for (const entry of resolveWebIconOverrides("production", "apps/web/public")) {
 }
 outputs.set("apps/mobile/assets/android-icon-foreground.png", await png(adaptive, 432));
 outputs.set("apps/mobile/assets/android-icon-mark.png", await png(white(adaptive), 432));
-outputs.set("apps/mobile/assets/android-notification-icon.png", await png(white(mono), 96));
+outputs.set("apps/mobile/assets/android-notification-icon.png", await png(white(mark), 96));
 for (const stage of ["prod", "nightly", "dev"]) {
-  outputs.set(`apps/mobile/assets/android-splash-icon-${stage}.png`, await png(mark, 1152));
+  outputs.set(`apps/mobile/assets/android-splash-icon-${stage}.png`, await png(splash, 1152));
 }
 
 const stale: string[] = [];
