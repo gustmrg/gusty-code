@@ -11,7 +11,7 @@ Most changes here are made by agents running inside Gusty Code itself, often con
 - `origin` is `gustmrg/gusty-code`. Push, open PRs, and file issues here.
 - `upstream` is `pingdotgg/t3code`, fetch only. Its push URL is set to `DISABLE`. Never push to upstream or open PRs, issues, or comments there.
 - `gh` targets a fork's parent repository by default. Run `gh repo set-default gustmrg/gusty-code` once per clone, and pass `--repo gustmrg/gusty-code` when in doubt.
-- Run `git config merge.ours.driver true` once per clone. `.gitattributes` uses it so `README.md`, `AGENTS.md`, `.github/workflows/ci.yml`, and `.github/workflows/release.yml` keep this repository's version on every sync.
+- Run `git config merge.ours.driver true` once per clone. `.gitattributes` uses it so `README.md`, `AGENTS.md`, `.github/pull_request_template.md`, `.github/workflows/ci.yml`, and `.github/workflows/release.yml` keep this repository's version on every sync.
 - Upstream's forge mirror, mobile/relay deploys, and signed release pipeline do not apply here. `.github/workflows/ci.yml` and `.github/workflows/release.yml` are customized in place for Gusty Code, and the unused upstream workflows are disabled in Actions settings.
 
 ## Branches
@@ -19,7 +19,7 @@ Most changes here are made by agents running inside Gusty Code itself, often con
 - `main` is the latest upstream **stable** tag plus this repository's changes. It is protected: changes land only through a PR.
 - `feat/*`, `fix/*`, `docs/*`, `ci/*` start from `main` and return by PR, usually squash-merged.
 - `backport/<topic>` brings an upstream commit that is not in a stable yet. Use `git cherry-pick -x <sha>` and keep the `(cherry picked from commit …)` line in the final commit message.
-- `sync/vX.Y.Z` merges an upstream stable tag into `main`. Merge it with a **merge commit**, never squash or rebase: that drops the link to upstream history and the next sync re-conflicts everything.
+- `sync/vX.Y.Z` merges an upstream stable tag into `main`. Merge it with a **merge commit**, never squash or rebase: that drops the link to upstream history and the next sync re-conflicts everything. Title the PR `chore(sync): merge upstream vX.Y.Z`; the merge commit takes the PR title.
 - `archive/*` are frozen backups of earlier work. Never rewrite or delete them.
 
 ## Reading upstream releases
@@ -174,7 +174,7 @@ For mobile verification, a missing or outdated native client is an install step,
 - Never make a PR unless the developer explicitly asks you to do so.
 - `origin` is not always GitHub. Check `git remote get-url origin` before your first forge command and use that forge's CLI and skill. See [Forge mirror](docs/operations/00_development.md#forge-mirror-optional).
 - Conventional commit titles, plain language: `fix(web): new threads no longer spike CPU`.
-- Body: the problem in a sentence or two, then how you fixed it. End with the model and harness that did the work.
+- Body: the problem in a sentence or two, then how you fixed it.
 - UI changes need before/after images. Motion or timing needs a short video.
 - Upload PR evidence to GitHub. Never commit PR-only screenshots or assets such as `.github/pr-assets/`.
 - One request is one PR. Split it only when the maintainer asks. Outside contributions follow the stricter [one problem per PR](CONTRIBUTING.md#one-problem) rule.
