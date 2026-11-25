@@ -11,6 +11,7 @@ apps/server/schema/** linguist-generated
 # Keep Gusty Code's versions on upstream syncs; AGENTS.md changes are ported by hand. Needs `git config merge.ours.driver true`.
 README.md merge=ours
 AGENTS.md merge=ours
+.github/pull_request_template.md merge=ours
 .github/workflows/ci.yml merge=ours
 .github/workflows/release.yml merge=ours
 # A no-op stand-in for upstream's analytics service; Gusty Code sends no product analytics.
