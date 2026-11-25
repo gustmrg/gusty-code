@@ -3898,7 +3898,7 @@
   "0a390286be34ef82": "저장하는 중",
   "aa48b4d278b7fae5": "입력창에서 편집하는 중",
   "49414ffb9aed57ab": "대기열에서 제거",
-  "de5c52c3f47ff209": "T3 Code에서 보냄",
+  "e4852c43d4857200": "Gusty Code에서 보냄",
   "ded43a280aed9f20": "스레드 열기",
   "7635dd64bbbe10ec": "자동화 열기",
   "6327e4ffa0f2366d": "풀 리퀘스트를 사용할 수 없음",
@@ -6018,7 +6018,7 @@
   "a0fd24f965eb070b": "스레드 기록을 가져올 수 없습니다.",
   "a506c135c2183ac3": "{count, plural, other {폴더 {count}개}}",
   "efc48b9736a534bc": "지금",
-  "edf393ff951b533a": "T3 Code에 오신 것을 환영합니다",
+  "c3411050050a9d4b": "Gusty Code에 오신 것을 환영합니다",
   "3cc77f9daa7eeafd": [
     {
       "t": "span",
@@ -11646,7 +11646,7 @@
   "9c73aa0c2e2b4e7d": "단축키 선택",
   "300a948f90c4d75c": "뒤로",
   "2a50e229df85d553": "앞으로",
-  "8aa6404c8018ea67": "T3 Code 홈",
+  "ad21acca2ab38af7": "Gusty Code 홈",
   "8e9626aa27cb188a": "이슈",
   "9d2fc1003e82feb1": "사용량",
   "20283eb1dd6119f9": "{count, plural, other {첨부 파일 {count}개}}",

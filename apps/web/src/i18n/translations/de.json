@@ -3913,7 +3913,7 @@
   "0a390286be34ef82": "Wird gespeichert",
   "aa48b4d278b7fae5": "Wird im Eingabefeld bearbeitet",
   "49414ffb9aed57ab": "Aus der Warteschlange entfernen",
-  "de5c52c3f47ff209": "Von T3 Code gesendet",
+  "e4852c43d4857200": "Von Gusty Code gesendet",
   "ded43a280aed9f20": "Thread öffnen",
   "7635dd64bbbe10ec": "Automatisierung öffnen",
   "6327e4ffa0f2366d": "Pull Requests nicht verfügbar",
@@ -6039,7 +6039,7 @@
   "a0fd24f965eb070b": "Thread-Verlauf konnte nicht importiert werden.",
   "a506c135c2183ac3": "{count, plural, one {{count} Ordner} other {{count} Ordner}}",
   "efc48b9736a534bc": "jetzt",
-  "edf393ff951b533a": "Willkommen bei T3 Code",
+  "c3411050050a9d4b": "Willkommen bei Gusty Code",
   "3cc77f9daa7eeafd": [
     {
       "t": "span",
@@ -11701,7 +11701,7 @@
   "9c73aa0c2e2b4e7d": "Tastenkürzel wählen",
   "300a948f90c4d75c": "Zurück",
   "2a50e229df85d553": "Vorwärts",
-  "8aa6404c8018ea67": "T3 Code Startseite",
+  "ad21acca2ab38af7": "Gusty Code Startseite",
   "8e9626aa27cb188a": "Issues",
   "9d2fc1003e82feb1": "Nutzung",
   "20283eb1dd6119f9": "{count, plural, one {{count} Anhang} other {{count} Anhänge}}",
