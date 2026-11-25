@@ -68,7 +68,7 @@ function sharedBackendTargetHost(host: string | undefined): string {
 }
 
 export const DEFAULT_T3_HOME = Effect.map(Effect.service(Path.Path), (path) =>
-  path.join(NodeOS.homedir(), ".t3"),
+  path.join(NodeOS.homedir(), ".gusty"),
 );
 
 const MODE_ARGS = {
@@ -330,9 +330,9 @@ export const createDevRunnerEnv = Effect.fn("dev-runner.createDevRunnerEnv")(fun
   };
 
   const path = yield* Path.Path;
-  // The server stores an explicit home's state in userdata, which for ~/.t3 is the live
-  // install. Left implicit, dev state goes to ~/.t3/dev.
-  const isLiveHome = resolvedBaseDir === path.join(yield* HostProcess.HomeDirectory, ".t3");
+  // The server stores an explicit home's state in userdata, which for ~/.gusty is the live
+  // install. Left implicit, dev state goes to ~/.gusty/dev.
+  const isLiveHome = resolvedBaseDir === path.join(yield* HostProcess.HomeDirectory, ".gusty");
   if (configuredBaseDir !== undefined && !isLiveHome) {
     output.T3CODE_HOME = resolvedBaseDir;
   } else {
@@ -639,7 +639,12 @@ const prepareFirstStart = Effect.fn("dev-runner.prepareFirstStart")(function* (i
         );
       }
     }
-    const source = path.join(yield* HostProcess.HomeDirectory, ".t3", "userdata", "statev2.sqlite");
+    const source = path.join(
+      yield* HostProcess.HomeDirectory,
+      ".gusty",
+      "userdata",
+      "statev2.sqlite",
+    );
     // A V1 state.sqlite counts as data too: the server imports it only while
     // statev2.sqlite is missing, so seeding would hide it.
     if (
@@ -1023,7 +1028,7 @@ const devRunnerCli = Command.make("dev-runner", {
   ),
   seed: Flag.Boolean("seed").pipe(
     Flag.withDescription(
-      "Seed an empty worktree database from ~/.t3 on first start (read-only, via migrate-dev-db) if the source is at most 500 MiB. On by default; --no-seed or T3CODE_DEV_SEED=0 skips it.",
+      "Seed an empty worktree database from ~/.gusty on first start (read-only, via migrate-dev-db) if the source is at most 500 MiB. On by default; --no-seed or T3CODE_DEV_SEED=0 skips it.",
     ),
     Flag.withFallbackConfig(optionalBooleanConfig("T3CODE_DEV_SEED")),
   ),
