@@ -158,8 +158,9 @@ jobs:
             target: AppImage
             arch: x64
             rust_target: x86_64-unknown-linux-gnu
+          # The Apple Speech helper needs Xcode 26.
           - label: macOS arm64
-            runner: macos-15
+            runner: macos-26
             platform: mac
             target: dmg
             arch: arm64
