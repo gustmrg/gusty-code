@@ -17,6 +17,10 @@
       "vite": { "entry": [".github/**/*.test.cjs"] },
       "vitest": { "entry": [".github/**/*.test.cjs"] },
     },
+    "evals": {
+      // The grader loads these answers by path, as the server loads a definitions file.
+      "entry": ["workflow-authoring/fixtures/*.ts"],
+    },
     "scripts": {
       // Knip loads its preprocessor through a CLI option; native verification and
       // worktree setup (from t3.json) run directly. release-desktop.yml bundles the
@@ -56,6 +60,7 @@
       "entry": [
         "src/bin.ts!",
         "src/claude-history-worker.ts!",
+        "src/process-launcher.ts!",
         "scripts/cli.ts",
         "scripts/fetch-expo-schema.ts",
         "scripts/probe-claude-fork-local-rollback-replay.ts",
@@ -65,8 +70,12 @@
         // graphqlgen reads its config.
         "graphql.config.ts",
       ],
-      // The generated operations export every selection's class.
-      "ignoreIssues": { "**/*.graphql.ts": ["exports", "types", "namespaceMembers"] },
+      "ignoreIssues": {
+        // The generated operations export every selection's class.
+        "**/*.graphql.ts": ["exports", "types", "namespaceMembers"],
+        // Kept verbatim from upstream for agent feedback; its analytics callers are removed.
+        "src/telemetry/ProviderDimensions.ts": ["exports"],
+      },
       // Keep the transitive Effect runtime pinned for standalone npm installs.
       // The Vite+ web build prerequisite.
       // Native and disk-loaded provider packages stay external to the bundle; the
@@ -83,6 +92,7 @@
       // Electron loads these bundles by filename rather than importing them.
       "entry": [
         "gnome-extension/extension.js!",
+        "src/backend/DesktopBackendRecoveryWorker.ts!",
         "src/electron/WindowsForegroundFocusWorker.ts!",
         "src/snapShot/GlobalShiftShortcutWorker.ts!",
         "src/snapShot/RegionSnapShotWorker.ts!",
@@ -164,6 +174,11 @@
     "packages/*": {
       // These workspace packages are private to this monorepo.
       "includeEntryExports": true,
+    },
+    "packages/shared": {
+      "includeEntryExports": true,
+      // Upstream's analytics read isDoNotTrackSet; Gusty Code removed them, the helper stays for syncs.
+      "ignoreIssues": { "src/otelEnvironment.ts": ["exports"] },
     },
     "packages/effect-acp": {
       "includeEntryExports": true,
