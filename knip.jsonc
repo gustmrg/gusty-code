@@ -13,6 +13,7 @@
         ".coderabbit.config.ts",
         ".github/scripts/thread-transfer-report.cjs",
         ".github/scripts/pr-limits.cjs",
+        ".github/scripts/mirror-play-apk.cjs",
       ],
       "vite": { "entry": [".github/**/*.test.cjs"] },
       "vitest": { "entry": [".github/**/*.test.cjs"] },
@@ -46,8 +47,9 @@
         "prepare-server-compile-cache.cjs",
         "smoke-desktop-app.ts",
         "verify-windows-desktop-artifact.ts",
-        // Gusty Code's release workflow no longer runs upstream's nightly resolver; kept for syncs.
+        // Gusty Code's release workflow no longer runs upstream's nightly resolver or CLI archive smoke; kept for syncs.
         "resolve-nightly-release.ts",
+        "smoke-cli-archive.ts",
       ],
       "ignoreDependencies": ["esbuild"],
       // The `t3` npm package's files: copied into the package, never imported.
