@@ -602,14 +602,33 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
 
   it.effect("names updatable AppImages without a version and apart per channel", () =>
     Effect.gen(function* () {
-      const appImageName = (version: string) =>
-        createBuildConfig("linux", "AppImage", version, false, false, undefined, undefined).pipe(
-          Effect.map((config) => (config.appImage as { artifactName: string }).artifactName),
-        );
+      const stableConfig = yield* createBuildConfig(
+        "linux",
+        "AppImage",
+        "0.0.37",
+        false,
+        false,
+        undefined,
+        undefined,
+      );
+      const nightlyConfig = yield* createBuildConfig(
+        "linux",
+        "AppImage",
+        "0.0.38-nightly.20261026.3740",
+        false,
+        false,
+        undefined,
+        undefined,
+      );
 
-      const stable = yield* appImageName("0.0.37");
-      const nightly = yield* appImageName("0.0.38-nightly.20261026.3740");
+      const stable = (stableConfig.appImage as { artifactName: string }).artifactName;
+      const nightly = (nightlyConfig.appImage as { artifactName: string }).artifactName;
 
+      assert.equal(stableConfig.productName, "Gusty Code (Beta)");
+      assert.equal(nightlyConfig.productName, "Gusty Code (Nightly)");
+      assert.equal(stableConfig.artifactName, "Gusty-Code-${version}-${arch}.${ext}");
+      assert.equal(stable, "Gusty-Code-${arch}.${ext}");
+      assert.equal(nightly, "Gusty-Code-Nightly-${arch}.${ext}");
       assert.notInclude(stable, "${version}");
       assert.notInclude(nightly, "${version}");
       assert.notEqual(stable, nightly);
