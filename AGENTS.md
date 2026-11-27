@@ -12,7 +12,7 @@ Most changes here are made by agents running inside Gusty Code itself, often con
 - `upstream` is `pingdotgg/t3code`, fetch only. Its push URL is set to `DISABLE`. Never push to upstream or open PRs, issues, or comments there.
 - `gh` targets a fork's parent repository by default. Run `gh repo set-default gustmrg/gusty-code` once per clone, and pass `--repo gustmrg/gusty-code` when in doubt.
 - Run `git config merge.ours.driver true` once per clone. `.gitattributes` uses it so `README.md`, `AGENTS.md`, `.github/pull_request_template.md`, `.github/workflows/ci.yml`, and `.github/workflows/release.yml` keep this repository's version on every sync.
-- Upstream's forge mirror, mobile/relay deploys, and signed release pipeline do not apply here. `.github/workflows/ci.yml` and `.github/workflows/release.yml` are customized in place for Gusty Code, and the unused upstream workflows are disabled in Actions settings.
+- Upstream's forge mirror, mobile/relay deploys, and signed release pipeline do not apply here. `.github/workflows/ci.yml` and `.github/workflows/release.yml` are customized in place for Gusty Code, and the unused upstream workflows are removed.
 
 ## Branches
 
@@ -57,7 +57,7 @@ Every upstream file this repository edits is a possible conflict on every sync.
 
 - Prefer settings, themes, and configuration over editing upstream components.
 - Put Gusty-only code in new files when possible.
-- `.github/workflows/ci.yml` and `.github/workflows/release.yml` are customized in place for Gusty Code and protected with `merge=ours` in `.gitattributes`. Disable unused upstream workflows in the repository's Actions settings instead of maintaining them.
+- `.github/workflows/ci.yml` and `.github/workflows/release.yml` are customized in place for Gusty Code and protected with `merge=ours` in `.gitattributes`. Unused upstream workflows are removed; keep them removed if an upstream sync reintroduces or modifies them.
 - Gusty Code releases use `gusty-vX.Y.Z` tags (never plain `vX.Y.Z`, which collides with upstream tags) or manual `workflow_dispatch` on `release.yml`. Builds are unsigned, exclude T3 Connect cloud config, and target Windows x64 (without WSL runtime), Linux x64, and macOS arm64.
 - The earlier work, before the restart on `v0.1.11`, is in `archive/main-2026-10`. Recover from it selectively; do not merge it.
 
